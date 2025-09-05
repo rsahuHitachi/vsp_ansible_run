@@ -1,0 +1,47 @@
+---
+####################################################################
+# Example : LDEV Playbook with Prompt Variables
+####################################################################
+- name: Logical Device Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_prompt:
+    - name: "storage_address"
+      prompt: "Enter the storage system address"
+      private: no
+
+    - name: "vault_storage_username"
+      prompt: "Enter the storage username"
+      private: no
+
+    - name: "vault_storage_secret"
+      prompt: "Enter the storage password/secret"
+      private: yes
+
+    - name: "ldev_id"
+      prompt: "Enter the LDEV ID"
+      private: no
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : delete ldev with a specific LDEV ID
+    ####################################################################
+    - name: Delete ldev
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          ldev_id: "{{ ldev_id | int }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
